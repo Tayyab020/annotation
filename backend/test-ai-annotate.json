@@ -1,0 +1,22 @@
+{
+  "videoId": "6894fcea400e11979ea667d1",
+  "taskDescription": "Analyze behavioral patterns in this meeting recording. Focus on identifying greetings, discussions, decision-making moments, and conclusions.",
+  "initialAnnotations": [
+    {
+      "startTime": 5.0,
+      "endTime": 15.0,
+      "label": "greeting",
+      "text": "Participants joining the meeting and exchanging greetings"
+    },
+    {
+      "startTime": 20.0,
+      "endTime": 45.0,
+      "label": "agenda_review",
+      "text": "Team lead reviewing meeting agenda and objectives"
+    }
+  ],
+  "frameAnalysis": {
+    "frames": ["frame_1", "frame_2"],
+    "objects_detected": ["person", "table", "laptop", "whiteboard"]
+  }
+}

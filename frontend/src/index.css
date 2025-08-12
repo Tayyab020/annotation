@@ -1,0 +1,225 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-imdb-black-lighter;
+  }
+  
+  body {
+    @apply bg-imdb-black text-white font-sans antialiased;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-imdb-black-light;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-imdb-black-lighter rounded-full hover:bg-imdb-gold transition-colors;
+  }
+}
+
+@layer components {
+  /* Modern Button Styles */
+  .btn-primary {
+    @apply bg-imdb-gold hover:bg-imdb-gold-light text-imdb-black font-semibold px-6 py-3 rounded-xl transition-all duration-300 focus:ring-4 focus:ring-imdb-gold/30 focus:outline-none transform hover:-translate-y-1 active:translate-y-0 shadow-lg hover:shadow-glow;
+  }
+  
+  .btn-secondary {
+    @apply bg-imdb-black-lighter hover:bg-imdb-black-light text-white font-medium px-6 py-3 rounded-xl transition-all duration-300 focus:ring-4 focus:ring-imdb-gold/30 focus:outline-none border border-imdb-black-lighter hover:border-imdb-gold/50;
+  }
+  
+  .btn-outline {
+    @apply border-2 border-imdb-gold text-imdb-gold hover:bg-imdb-gold hover:text-imdb-black font-semibold px-6 py-3 rounded-xl transition-all duration-300 focus:ring-4 focus:ring-imdb-gold/30 focus:outline-none transform hover:-translate-y-1;
+  }
+
+  .btn-ghost {
+    @apply text-white hover:text-imdb-gold hover:bg-imdb-black-lighter font-medium px-4 py-2 rounded-lg transition-all duration-200 focus:ring-2 focus:ring-imdb-gold/30 focus:outline-none;
+  }
+
+  /* Modern Card Styles */
+  .card {
+    @apply bg-imdb-black-light rounded-2xl border border-imdb-black-lighter p-6 shadow-soft;
+  }
+  
+  .card-hover {
+    @apply bg-imdb-black-light rounded-2xl border border-imdb-black-lighter p-6 shadow-soft hover:shadow-medium transition-all duration-300 hover:-translate-y-1 hover:border-imdb-gold/50 cursor-pointer;
+  }
+
+  .card-gradient {
+    @apply bg-gradient-to-br from-imdb-black-light to-imdb-black-lighter rounded-2xl border border-imdb-black-lighter p-6 shadow-soft;
+  }
+
+  /* Modern Input Styles */
+  .input-field {
+    @apply w-full px-4 py-3 border-2 border-imdb-black-lighter rounded-xl focus:border-imdb-gold focus:ring-4 focus:ring-imdb-gold/20 transition-all duration-300 bg-imdb-black-light text-white placeholder-imdb-black-lighter focus:bg-imdb-black-light;
+  }
+
+  .input-field-error {
+    @apply w-full px-4 py-3 border-2 border-error focus:border-error focus:ring-4 focus:ring-error/20 rounded-xl transition-all duration-300 bg-imdb-black-light text-white;
+  }
+
+  /* Modern Navigation Styles */
+  .nav-item {
+    @apply flex items-center px-4 py-3 text-white/70 hover:text-white hover:bg-imdb-black-lighter rounded-xl transition-all duration-300 cursor-pointer font-medium;
+  }
+  
+  .nav-item.active {
+    @apply bg-imdb-gold text-imdb-black font-semibold shadow-lg shadow-glow;
+  }
+
+  .nav-item:hover:not(.active) {
+    @apply bg-imdb-black-lighter/50;
+  }
+
+  /* Modern Status Styles */
+  .status-success {
+    @apply bg-success/20 text-success border border-success/30 px-3 py-1.5 rounded-full text-sm font-medium;
+  }
+  
+  .status-warning {
+    @apply bg-warning/20 text-warning border border-warning/30 px-3 py-1.5 rounded-full text-sm font-medium;
+  }
+  
+  .status-error {
+    @apply bg-error/20 text-error border border-error/30 px-3 py-1.5 rounded-full text-sm font-medium;
+  }
+
+  .status-info {
+    @apply bg-info/20 text-info border border-info/30 px-3 py-1.5 rounded-full text-sm font-medium;
+  }
+
+  /* Modern Badge Styles */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium;
+  }
+  
+  .badge-primary {
+    @apply bg-imdb-gold/20 text-imdb-gold border border-imdb-gold/30;
+  }
+  
+  .badge-secondary {
+    @apply bg-imdb-black-lighter text-white/70 border border-imdb-black-lighter;
+  }
+
+  /* Modern Video Player Styles */
+  .video-controls {
+    @apply bg-gradient-to-t from-black/90 via-black/50 to-transparent p-6 rounded-b-2xl;
+  }
+  
+  .video-progress {
+    @apply w-full h-3 bg-imdb-black-lighter rounded-full overflow-hidden;
+  }
+  
+  .video-progress-fill {
+    @apply h-full bg-imdb-gold transition-all duration-300 rounded-full;
+  }
+
+  /* Modern Annotation Styles */
+  .annotation-marker {
+    @apply absolute w-4 h-4 bg-imdb-gold rounded-full border-2 border-white shadow-lg cursor-pointer transition-all duration-200 hover:scale-125 hover:bg-imdb-gold-light hover:shadow-glow;
+  }
+  
+  .annotation-card {
+    @apply bg-imdb-black-light rounded-xl p-4 border border-imdb-black-lighter shadow-soft hover:shadow-medium transition-all duration-200 hover:border-imdb-gold/50;
+  }
+
+  /* Modern Modal Styles */
+  .modal-overlay {
+    @apply fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50;
+  }
+  
+  .modal-content {
+    @apply bg-imdb-black-light rounded-3xl shadow-2xl border border-imdb-black-lighter p-8 w-full max-w-2xl mx-4 transform transition-all duration-300 scale-100 opacity-100;
+  }
+  
+  .modal-content.hide {
+    @apply scale-95 opacity-0;
+  }
+
+  /* Modern Loading States */
+  .loading-shimmer {
+    @apply relative overflow-hidden bg-imdb-black-lighter rounded;
+  }
+  
+  .loading-shimmer::after {
+    @apply content-[''] absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-imdb-gold/20 to-transparent animate-shimmer;
+  }
+
+  /* Modern Timeline Styles */
+  .timeline-item {
+    @apply relative pl-8 pb-6 border-l-2 border-imdb-black-lighter hover:border-imdb-gold transition-colors duration-300;
+  }
+  
+  .timeline-item::before {
+    @apply content-[''] absolute left-[-9px] top-0 w-4 h-4 bg-imdb-black-light border-2 border-imdb-black-lighter rounded-full transition-all duration-300;
+  }
+  
+  .timeline-item:hover::before {
+    @apply border-imdb-gold bg-imdb-gold;
+  }
+}
+
+@layer utilities {
+  /* Modern Gradients */
+  .text-gradient {
+    @apply bg-gradient-to-r from-imdb-gold to-imdb-gold-light bg-clip-text text-transparent;
+  }
+  
+  .bg-gradient-hero {
+    @apply bg-gradient-to-br from-imdb-black via-imdb-black-light to-imdb-black-lighter;
+  }
+  
+  .bg-gradient-card {
+    @apply bg-gradient-to-br from-imdb-black-light to-imdb-black-lighter;
+  }
+
+  /* Modern Shadows */
+  .shadow-glow {
+    box-shadow: 0 0 20px rgba(226, 182, 22, 0.3);
+  }
+  
+  .shadow-glow-lg {
+    box-shadow: 0 0 40px rgba(226, 182, 22, 0.4);
+  }
+
+  /* Modern Animations */
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  /* Modern Borders */
+  .border-gradient {
+    border: 2px solid transparent;
+    background: linear-gradient(imdb-black-light, imdb-black-light) padding-box, linear-gradient(135deg, #e2b616, #f4c430) border-box;
+  }
+
+  /* Modern Text Effects */
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  
+  .text-shadow-lg {
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Modern Hover Effects */
+  .hover-lift {
+    @apply transition-all duration-300 hover:-translate-y-2 hover:shadow-xl;
+  }
+  
+  .hover-glow {
+    @apply transition-all duration-300 hover:shadow-glow;
+  }
+}
