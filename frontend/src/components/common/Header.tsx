@@ -27,9 +27,7 @@ const Header: React.FC = () => {
 
   const navigationItems = [
     { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
-    { name: 'Videos', href: '/videos', icon: VideoCameraIcon },
     { name: 'Annotations', href: '/annotations', icon: DocumentTextIcon },
-    { name: 'History', href: '/history', icon: ClockIcon },
   ];
 
   // Only show hero section on home page
@@ -47,7 +45,7 @@ const Header: React.FC = () => {
             {/* Logo and Brand */}
             <div className="flex items-center space-x-4">
               <div className="relative">
-                <div className="w-12 h-12 bg-imdb-gold rounded-2xl flex items-center justify-center shadow-lg shadow-glow animate-float">
+                <div className="w-12 h-12 bg-imdb-gold rounded-2xl flex items-center justify-center shadow-lg shadow-glow ">
                   <VideoCameraIcon className="w-7 h-7 text-imdb-black" />
                 </div>
                 <div className="absolute -top-1 -right-1 w-4 h-4 bg-imdb-gold-light rounded-full animate-pulse"></div>
@@ -85,7 +83,7 @@ const Header: React.FC = () => {
             </nav>
 
             {/* Search Bar */}
-            <div className="flex-1 max-w-md mx-8">
+            {/* <div className="flex-1 max-w-md mx-8">
               <form onSubmit={handleSearch} className="relative">
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -100,7 +98,7 @@ const Header: React.FC = () => {
                   />
                 </div>
               </form>
-            </div>
+            </div> */}
 
             {/* Right Side Actions */}
             <div className="flex items-center space-x-3">

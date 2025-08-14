@@ -61,6 +61,9 @@ const validateAnnotation = [
 // Create annotation
 router.post('/', validateAnnotation, annotationController.createAnnotation);
 
+// Get all annotations for user
+router.get('/all', annotationController.getAllAnnotations);
+
 // Get annotations for a specific video
 router.get('/:videoId', annotationController.getAnnotations);
 

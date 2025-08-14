@@ -38,17 +38,15 @@ class VideoService {
     hasPrev: boolean;
   }> {
     const response = await apiService.get<{
-      data: Video[];
+      videos: Video[];
       total: number;
-      count: number;
-      pagination: any;
     }>(`${API_ENDPOINTS.VIDEOS.BASE}?page=${page}&limit=${limit}`);
 
-    if (response.success && response.data) {
-      const totalPages = Math.ceil(response.data.total / limit);
+    if (response.success && response.videos) {
+      const totalPages = Math.ceil(response.total / limit);
       return {
-        videos: response.data.data,
-        total: response.data.total,
+        videos: response.videos,
+        total: response.total,
         totalPages,
         currentPage: page,
         hasNext: page < totalPages,

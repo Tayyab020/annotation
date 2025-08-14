@@ -30,6 +30,19 @@ class AnnotationService {
     throw new Error(response.message || 'Failed to fetch annotations');
   }
 
+  // Get all annotations for user
+  async getAllAnnotations(): Promise<Annotation[]> {
+    const response = await apiService.get<Annotation[]>(
+      API_ENDPOINTS.ANNOTATIONS.ALL
+    );
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+
+    throw new Error(response.message || 'Failed to fetch annotations');
+  }
+
   // Get single annotation
   async getAnnotation(annotationId: string): Promise<Annotation> {
     const response = await apiService.get<Annotation>(

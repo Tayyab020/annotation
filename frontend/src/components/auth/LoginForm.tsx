@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../../contexts/AuthContext';
 import type { LoadingState } from '../../types';
@@ -13,7 +13,15 @@ const LoginForm: React.FC = () => {
   const [loading, setLoading] = useState<LoadingState>({ isLoading: false });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -61,135 +69,131 @@ const LoginForm: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-primary-100">
-            <span className="text-2xl font-bold text-primary-600">N</span>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-imdb-black via-imdb-black-light to-imdb-black-lighter py-12 px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <div className="mx-auto h-16 w-16 flex items-center justify-center rounded-full bg-imdb-gold shadow-glow">
+            <span className="text-3xl font-bold text-imdb-black">V</span>
           </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to Nova
+          <h2 className="mt-6 text-center text-4xl font-extrabold text-white">
+            Welcome Back
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-2 text-center text-lg text-imdb-gold">
+            Sign in to VidAnnotate
+          </p>
+          <p className="mt-1 text-center text-sm text-white/70">
             AI-Powered Video Annotation Platform
           </p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="email" className="form-label">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className={`form-input ${errors.email ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
-                placeholder="Enter your email"
-                value={formData.email}
-                onChange={handleChange}
-                disabled={loading.isLoading}
-              />
-              {errors.email && <p className="form-error">{errors.email}</p>}
-            </div>
-
-            <div>
-              <label htmlFor="password" className="form-label">
-                Password
-              </label>
-              <div className="relative">
+        <div className="bg-imdb-black-light rounded-2xl border border-imdb-black-lighter p-8 shadow-soft">
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            <div className="space-y-5">
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-white mb-2">
+                  Email address
+                </label>
                 <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
                   required
-                  className={`form-input pr-10 ${errors.password ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
-                  placeholder="Enter your password"
-                  value={formData.password}
+                  className={`input-field ${errors.email ? 'input-field-error' : ''}`}
+                  placeholder="Enter your email"
+                  value={formData.email}
                   onChange={handleChange}
                   disabled={loading.isLoading}
                 />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowPassword(!showPassword)}
-                  disabled={loading.isLoading}
-                >
-                  {showPassword ? (
-                    <EyeSlashIcon className="h-5 w-5 text-gray-400" />
-                  ) : (
-                    <EyeIcon className="h-5 w-5 text-gray-400" />
-                  )}
-                </button>
+                {errors.email && <p className="mt-1 text-sm text-error">{errors.email}</p>}
               </div>
-              {errors.password && <p className="form-error">{errors.password}</p>}
-            </div>
-          </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <input
-                id="remember-me"
-                name="remember-me"
-                type="checkbox"
-                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-              />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-                Remember me
-              </label>
-            </div>
-
-            <div className="text-sm">
-              <Link
-                to="/forgot-password"
-                className="font-medium text-primary-600 hover:text-primary-500"
-              >
-                Forgot your password?
-              </Link>
-            </div>
-          </div>
-
-          <div>
-            <button
-              type="submit"
-              disabled={loading.isLoading}
-              className="btn-primary w-full justify-center py-3 text-base"
-            >
-              {loading.isLoading ? (
-                <div className="flex items-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  {loading.message}
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-white mb-2">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    required
+                    className={`input-field pr-10 ${errors.password ? 'input-field-error' : ''}`}
+                    placeholder="Enter your password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    disabled={loading.isLoading}
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-white/60 hover:text-white transition-colors"
+                    onClick={() => setShowPassword(!showPassword)}
+                    disabled={loading.isLoading}
+                  >
+                    {showPassword ? (
+                      <EyeSlashIcon className="h-5 w-5" />
+                    ) : (
+                      <EyeIcon className="h-5 w-5" />
+                    )}
+                  </button>
                 </div>
-              ) : (
-                'Sign in'
-              )}
-            </button>
-          </div>
+                {errors.password && <p className="mt-1 text-sm text-error">{errors.password}</p>}
+              </div>
+            </div>
 
-          <div className="text-center">
-            <p className="text-sm text-gray-600">
-              Don't have an account?{' '}
-              <Link
-                to="/register"
-                className="font-medium text-primary-600 hover:text-primary-500"
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  id="remember-me"
+                  name="remember-me"
+                  type="checkbox"
+                  className="h-4 w-4 text-imdb-gold focus:ring-imdb-gold focus:ring-2 border-imdb-black-lighter rounded bg-imdb-black-light"
+                />
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-white/80">
+                  Remember me
+                </label>
+              </div>
+
+              <div className="text-sm">
+                <Link
+                  to="/forgot-password"
+                  className="font-medium text-imdb-gold hover:text-imdb-gold-light transition-colors"
+                >
+                  Forgot your password?
+                </Link>
+              </div>
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                disabled={loading.isLoading}
+                className="btn-primary w-full justify-center py-3 text-base"
               >
-                Sign up for free
-              </Link>
-            </p>
-          </div>
-        </form>
+                {loading.isLoading ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-imdb-black mr-2"></div>
+                    {loading.message}
+                  </div>
+                ) : (
+                  'Sign in'
+                )}
+              </button>
+            </div>
 
-        {/* Demo Credentials */}
-        <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-          <h3 className="text-sm font-medium text-blue-800">Demo Credentials</h3>
-          <div className="mt-2 text-sm text-blue-700">
-            <p><strong>Email:</strong> testuser@example.com</p>
-            <p><strong>Password:</strong> Password123</p>
-          </div>
+            <div className="text-center">
+              <p className="text-sm text-white/70">
+                Don't have an account?{' '}
+                <Link
+                  to="/register"
+                  className="font-medium text-imdb-gold hover:text-imdb-gold-light transition-colors"
+                >
+                  Sign up for free
+                </Link>
+              </p>
+            </div>
+          </form>
         </div>
       </div>
     </div>

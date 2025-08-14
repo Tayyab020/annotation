@@ -20,6 +20,7 @@ export const API_ENDPOINTS = {
   // Annotations
   ANNOTATIONS: {
     BASE: '/annotations',
+    ALL: '/annotations/all',
     BY_VIDEO: (videoId: string) => `/annotations/${videoId}`,
     BY_ID: (id: string) => `/annotations/single/${id}`,
     UPDATE: (id: string) => `/annotations/${id}`,

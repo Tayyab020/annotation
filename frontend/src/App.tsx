@@ -9,7 +9,7 @@ import RegisterForm from './components/auth/RegisterForm';
 import Dashboard from './components/dashboard/Dashboard';
 import VideoPlayer from './components/video/VideoPlayer';
 import VideoUpload from './components/video/VideoUpload';
-import History from './components/history/History';
+import AnnotationHistory from './components/annotations/AnnotationHistory';
 
 const queryClient = new QueryClient();
 
@@ -20,7 +20,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-imdb-gold"></div>
       </div>
     );
   }
@@ -69,22 +69,24 @@ const App: React.FC = () => {
               toastOptions={{
                 duration: 4000,
                 style: {
-                  background: '#1e293b',
+                  background: '#1a1a1a',
                   color: '#fff',
-                  border: '1px solid #475569',
+                  border: '1px solid #e2b616',
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 25px -5px rgba(0, 0, 0, 0.15)',
                 },
                 success: {
                   duration: 3000,
                   iconTheme: {
-                    primary: '#10b981',
-                    secondary: '#fff',
+                    primary: '#e2b616',
+                    secondary: '#1a1a1a',
                   },
                 },
                 error: {
                   duration: 5000,
                   iconTheme: {
                     primary: '#ef4444',
-                    secondary: '#fff',
+                    secondary: '#1a1a1a',
                   },
                 },
               }}
@@ -114,16 +116,8 @@ const App: React.FC = () => {
                   </div>
                 </PublicLayout>
               } />
-              <Route path="/login" element={
-                <PublicLayout>
-                  <LoginForm />
-                </PublicLayout>
-              } />
-              <Route path="/register" element={
-                <PublicLayout>
-                  <RegisterForm />
-                </PublicLayout>
-              } />
+              <Route path="/login" element={<LoginForm />} />
+              <Route path="/register" element={<RegisterForm />} />
               
               {/* Protected Routes */}
               <Route path="/dashboard" element={
@@ -160,17 +154,7 @@ const App: React.FC = () => {
               <Route path="/annotations" element={
                 <ProtectedRoute>
                   <MainLayout>
-                    <div className="p-8">
-                      <h1 className="text-3xl font-bold text-white mb-6">Annotations</h1>
-                      <p className="text-white/70">Annotation management page coming soon...</p>
-                    </div>
-                  </MainLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/history" element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <History />
+                    <AnnotationHistory />
                   </MainLayout>
                 </ProtectedRoute>
               } />

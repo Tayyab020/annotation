@@ -160,10 +160,31 @@ const deleteAnnotation = async (req, res, next) => {
   }
 };
 
+// @desc    Get all annotations for a user
+// @route   GET /api/annotations/all
+// @access  Private
+const getAllAnnotations = async (req, res, next) => {
+  try {
+    const annotations = await Annotation.find({ user: req.user.id })
+      .sort({ createdAt: -1 })
+      .populate('video', 'title filename cloudinaryUrl')
+      .populate('user', 'name');
+
+    res.status(200).json({
+      success: true,
+      count: annotations.length,
+      data: annotations
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createAnnotation,
   getAnnotations,
   getAnnotation,
   updateAnnotation,
-  deleteAnnotation
+  deleteAnnotation,
+  getAllAnnotations
 };

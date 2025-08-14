@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { EyeIcon, EyeSlashIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../../contexts/AuthContext';
 import type { LoadingState } from '../../types';
@@ -16,7 +16,15 @@ const RegisterForm: React.FC = () => {
   const [loading, setLoading] = useState<LoadingState>({ isLoading: false });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const { register } = useAuth();
+  const { register, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
 
   // Password strength validation
   const getPasswordStrength = (password: string) => {
@@ -111,7 +119,7 @@ const RegisterForm: React.FC = () => {
   };
 
   const PasswordCheck: React.FC<{ met: boolean; children: React.ReactNode }> = ({ met, children }) => (
-    <div className={`flex items-center text-sm ${met ? 'text-green-600' : 'text-gray-500'}`}>
+    <div className={`flex items-center text-sm ${met ? 'text-success' : 'text-white/50'}`}>
       {met ? (
         <CheckIcon className="h-4 w-4 mr-2" />
       ) : (
@@ -122,206 +130,211 @@ const RegisterForm: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-primary-100">
-            <span className="text-2xl font-bold text-primary-600">N</span>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-imdb-black via-imdb-black-light to-imdb-black-lighter py-12 px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <div className="mx-auto h-16 w-16 flex items-center justify-center rounded-full bg-imdb-gold shadow-glow">
+            <span className="text-3xl font-bold text-imdb-black">V</span>
           </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-center text-4xl font-extrabold text-white">
             Create your account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Join Nova and start annotating videos with AI
+          <p className="mt-2 text-center text-lg text-imdb-gold">
+            Join VidAnnotate
+          </p>
+          <p className="mt-1 text-center text-sm text-white/70">
+            Start annotating videos with AI
           </p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="name" className="form-label">
-                Full name
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                autoComplete="name"
-                required
-                className={`form-input ${errors.name ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
-                placeholder="Enter your full name"
-                value={formData.name}
-                onChange={handleChange}
-                disabled={loading.isLoading}
-              />
-              {errors.name && <p className="form-error">{errors.name}</p>}
-            </div>
-
-            <div>
-              <label htmlFor="email" className="form-label">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className={`form-input ${errors.email ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
-                placeholder="Enter your email"
-                value={formData.email}
-                onChange={handleChange}
-                disabled={loading.isLoading}
-              />
-              {errors.email && <p className="form-error">{errors.email}</p>}
-            </div>
-
-            <div>
-              <label htmlFor="password" className="form-label">
-                Password
-              </label>
-              <div className="relative">
+        <div className="bg-imdb-black-light rounded-2xl border border-imdb-black-lighter p-8 shadow-soft">
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            <div className="space-y-5">
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-white mb-2">
+                  Full name
+                </label>
                 <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="new-password"
+                  id="name"
+                  name="name"
+                  type="text"
+                  autoComplete="name"
                   required
-                  className={`form-input pr-10 ${errors.password ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
-                  placeholder="Create a password"
-                  value={formData.password}
+                  className={`input-field ${errors.name ? 'input-field-error' : ''}`}
+                  placeholder="Enter your full name"
+                  value={formData.name}
                   onChange={handleChange}
                   disabled={loading.isLoading}
                 />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowPassword(!showPassword)}
-                  disabled={loading.isLoading}
-                >
-                  {showPassword ? (
-                    <EyeSlashIcon className="h-5 w-5 text-gray-400" />
-                  ) : (
-                    <EyeIcon className="h-5 w-5 text-gray-400" />
-                  )}
-                </button>
+                {errors.name && <p className="mt-1 text-sm text-error">{errors.name}</p>}
               </div>
-              
-              {/* Password strength indicator */}
-              {formData.password && (
-                <div className="mt-2">
-                  <div className="flex space-x-1 mb-2">
-                    {[1, 2, 3, 4, 5].map((level) => (
-                      <div
-                        key={level}
-                        className={`h-1 flex-1 rounded ${
-                          level <= passwordStrength.score
-                            ? passwordStrength.level === 'weak'
-                              ? 'bg-red-500'
-                              : passwordStrength.level === 'medium'
-                              ? 'bg-yellow-500'
-                              : 'bg-green-500'
-                            : 'bg-gray-200'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <div className="space-y-1">
-                    <PasswordCheck met={passwordStrength.checks.length}>
-                      At least 6 characters
-                    </PasswordCheck>
-                    <PasswordCheck met={passwordStrength.checks.uppercase}>
-                      One uppercase letter
-                    </PasswordCheck>
-                    <PasswordCheck met={passwordStrength.checks.lowercase}>
-                      One lowercase letter
-                    </PasswordCheck>
-                    <PasswordCheck met={passwordStrength.checks.number}>
-                      One number
-                    </PasswordCheck>
-                  </div>
-                </div>
-              )}
-              
-              {errors.password && <p className="form-error">{errors.password}</p>}
-            </div>
 
-            <div>
-              <label htmlFor="confirmPassword" className="form-label">
-                Confirm password
-              </label>
-              <div className="relative">
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-white mb-2">
+                  Email address
+                </label>
                 <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  autoComplete="new-password"
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
                   required
-                  className={`form-input pr-10 ${errors.confirmPassword ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
-                  placeholder="Confirm your password"
-                  value={formData.confirmPassword}
+                  className={`input-field ${errors.email ? 'input-field-error' : ''}`}
+                  placeholder="Enter your email"
+                  value={formData.email}
                   onChange={handleChange}
                   disabled={loading.isLoading}
                 />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  disabled={loading.isLoading}
-                >
-                  {showConfirmPassword ? (
-                    <EyeSlashIcon className="h-5 w-5 text-gray-400" />
-                  ) : (
-                    <EyeIcon className="h-5 w-5 text-gray-400" />
-                  )}
-                </button>
+                {errors.email && <p className="mt-1 text-sm text-error">{errors.email}</p>}
               </div>
-              {errors.confirmPassword && <p className="form-error">{errors.confirmPassword}</p>}
-            </div>
-          </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading.isLoading || passwordStrength.score < 3}
-              className="btn-primary w-full justify-center py-3 text-base"
-            >
-              {loading.isLoading ? (
-                <div className="flex items-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  {loading.message}
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-white mb-2">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    required
+                    className={`input-field pr-10 ${errors.password ? 'input-field-error' : ''}`}
+                    placeholder="Create a password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    disabled={loading.isLoading}
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-white/60 hover:text-white transition-colors"
+                    onClick={() => setShowPassword(!showPassword)}
+                    disabled={loading.isLoading}
+                  >
+                    {showPassword ? (
+                      <EyeSlashIcon className="h-5 w-5" />
+                    ) : (
+                      <EyeIcon className="h-5 w-5" />
+                    )}
+                  </button>
                 </div>
-              ) : (
-                'Create account'
-              )}
-            </button>
-          </div>
+                
+                {/* Password strength indicator */}
+                {formData.password && (
+                  <div className="mt-3 p-3 bg-imdb-black-lighter rounded-lg border border-imdb-black-lighter">
+                    <div className="flex space-x-1 mb-2">
+                      {[1, 2, 3, 4, 5].map((level) => (
+                        <div
+                          key={level}
+                          className={`h-1.5 flex-1 rounded ${
+                            level <= passwordStrength.score
+                              ? passwordStrength.level === 'weak'
+                                ? 'bg-error'
+                                : passwordStrength.level === 'medium'
+                                ? 'bg-warning'
+                                : 'bg-success'
+                              : 'bg-imdb-black-lighter'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <div className="space-y-1">
+                      <PasswordCheck met={passwordStrength.checks.length}>
+                        At least 6 characters
+                      </PasswordCheck>
+                      <PasswordCheck met={passwordStrength.checks.uppercase}>
+                        One uppercase letter
+                      </PasswordCheck>
+                      <PasswordCheck met={passwordStrength.checks.lowercase}>
+                        One lowercase letter
+                      </PasswordCheck>
+                      <PasswordCheck met={passwordStrength.checks.number}>
+                        One number
+                      </PasswordCheck>
+                    </div>
+                  </div>
+                )}
+                
+                {errors.password && <p className="mt-1 text-sm text-error">{errors.password}</p>}
+              </div>
 
-          <div className="text-center">
-            <p className="text-sm text-gray-600">
-              Already have an account?{' '}
-              <Link
-                to="/login"
-                className="font-medium text-primary-600 hover:text-primary-500"
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-white mb-2">
+                  Confirm password
+                </label>
+                <div className="relative">
+                  <input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    required
+                    className={`input-field pr-10 ${errors.confirmPassword ? 'input-field-error' : ''}`}
+                    placeholder="Confirm your password"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    disabled={loading.isLoading}
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-white/60 hover:text-white transition-colors"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    disabled={loading.isLoading}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeSlashIcon className="h-5 w-5" />
+                    ) : (
+                      <EyeIcon className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
+                {errors.confirmPassword && <p className="mt-1 text-sm text-error">{errors.confirmPassword}</p>}
+              </div>
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                disabled={loading.isLoading || passwordStrength.score < 3}
+                className="btn-primary w-full justify-center py-3 text-base disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Sign in
+                {loading.isLoading ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-imdb-black mr-2"></div>
+                    {loading.message}
+                  </div>
+                ) : (
+                  'Create account'
+                )}
+              </button>
+            </div>
+
+            <div className="text-center">
+              <p className="text-sm text-white/70">
+                Already have an account?{' '}
+                <Link
+                  to="/login"
+                  className="font-medium text-imdb-gold hover:text-imdb-gold-light transition-colors"
+                >
+                  Sign in
+                </Link>
+              </p>
+            </div>
+          </form>
+
+          {/* Terms */}
+          <div className="mt-6 text-center">
+            <p className="text-xs text-white/60">
+              By creating an account, you agree to our{' '}
+              <Link to="/terms" className="text-imdb-gold hover:text-imdb-gold-light transition-colors">
+                Terms of Service
+              </Link>{' '}
+              and{' '}
+              <Link to="/privacy" className="text-imdb-gold hover:text-imdb-gold-light transition-colors">
+                Privacy Policy
               </Link>
             </p>
           </div>
-        </form>
-
-        {/* Terms */}
-        <div className="mt-6 text-center">
-          <p className="text-xs text-gray-500">
-            By creating an account, you agree to our{' '}
-            <Link to="/terms" className="text-primary-600 hover:text-primary-500">
-              Terms of Service
-            </Link>{' '}
-            and{' '}
-            <Link to="/privacy" className="text-primary-600 hover:text-primary-500">
-              Privacy Policy
-            </Link>
-          </p>
         </div>
       </div>
     </div>
