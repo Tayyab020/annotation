@@ -70,11 +70,11 @@ const Dashboard: React.FC = () => {
   const handleUploadComplete = (videoId: string) => {
     setShowUploadModal(false);
     fetchDashboardData();
-    navigate(`/videos/${videoId}`);
+    navigate(`/videos/${videoId}`, { state: { from: '/dashboard' } });
   };
 
   const handleVideoClick = (videoId: string) => {
-    navigate(`/videos/${videoId}`);
+    navigate(`/videos/${videoId}`, { state: { from: '/dashboard' } });
   };
 
   const formatDuration = (seconds: number) => {

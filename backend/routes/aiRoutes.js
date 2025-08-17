@@ -60,6 +60,9 @@ const validateSaveAnnotations = [
 // Generate AI annotations
 router.post('/annotate', validateAIAnnotationRequest, aiController.annotateWithAI);
 
+// Get AI annotation status
+router.get('/status/:videoId', aiController.getAIAnnotationStatus);
+
 // Test AI service
 router.get('/test', aiController.testAIService);
 

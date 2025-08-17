@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   PlayIcon,
   PauseIcon,
@@ -12,6 +12,7 @@ import {
   SparklesIcon,
   DocumentTextIcon,
   ArrowLeftIcon,
+  XMarkIcon as XMarkIconSolid,
 } from "@heroicons/react/24/outline";
 import { videoService } from "../../services/video";
 import { annotationService } from "../../services/annotation";
@@ -21,6 +22,8 @@ import toast from "react-hot-toast";
 
 const VideoPlayer: React.FC = () => {
   const { videoId } = useParams<{ videoId: string }>();
+  const navigate = useNavigate();
+  const location = useLocation();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [video, setVideo] = useState<Video | null>(null);
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
@@ -39,6 +42,13 @@ const VideoPlayer: React.FC = () => {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiAnnotations, setAiAnnotations] = useState<any[]>([]);
   const [saveLoading, setSaveLoading] = useState(false);
+  const [aiProgress, setAiProgress] = useState<{
+    status: string;
+    message: string;
+    progress: string | number;
+    step: string;
+  } | null>(null);
+  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
 
   // Form state
   const [annotationForm, setAnnotationForm] = useState<CreateAnnotation>({
@@ -103,6 +113,24 @@ const VideoPlayer: React.FC = () => {
     if (videoRef.current) {
       videoRef.current.currentTime = time;
       setCurrentTime(time);
+    }
+  };
+
+  const handleBackNavigation = () => {
+    // Check if user came from a specific page via state
+    if (location.state?.from) {
+      navigate(location.state.from);
+    } else {
+      // Default fallback - check referrer or go to dashboard
+      const referrer = document.referrer;
+      if (referrer && referrer.includes('/annotations')) {
+        navigate('/annotations');
+      } else if (referrer && referrer.includes('/dashboard')) {
+        navigate('/dashboard');
+      } else {
+        // Default to dashboard if no clear referrer
+        navigate('/dashboard');
+      }
     }
   };
 
@@ -194,25 +222,119 @@ const VideoPlayer: React.FC = () => {
 
   const handleAIGenerate = async () => {
     setAiLoading(true);
+    setAiProgress(null); // Clear previous progress
+    setAiAnnotations([]); // Clear previous annotations
+
     try {
+      console.log('Starting AI generation with:', { videoId: videoId!, taskDescription: aiForm.taskDescription });
+      
+      // Step 1: Start the AI annotation process
       const result = await aiService.generateAnnotations({
         videoId: videoId!,
         taskDescription: aiForm.taskDescription,
       });
 
-      if (result.annotations) {
-        setAiAnnotations(result.annotations);
-        toast.success(`AI generated ${result.annotations.length} annotations!`);
+      console.log('AI service response:', result);
+      console.log('Response type:', typeof result);
+      console.log('Response keys:', Object.keys(result));
+      console.log('Response.success:', result.success);
+      console.log('Response.data:', result.data);
+
+      if (result.success && result.data?.statusId) {
+        console.log('AI process started successfully, statusId:', result.data.statusId);
+        
+        // Step 2: Start polling for status updates
+        const statusId = result.data.statusId;
+        startPollingForStatus(statusId);
+        
+        // Show initial progress
+        setAiProgress({
+          status: result.data.status,
+          message: result.data.message,
+          progress: result.data.progress,
+          step: result.data.step
+        });
+        
+        toast.success('AI analysis started! Monitoring progress...');
       } else {
-        toast.error("Failed to generate AI annotations");
+        console.error('Failed to start AI analysis - missing required fields:', { 
+          success: result.success, 
+          hasData: !!result.data, 
+          hasStatusId: !!result.data?.statusId 
+        });
+        throw new Error('Failed to start AI analysis - missing required fields');
       }
     } catch (error) {
-      toast.error("AI service error");
-    } finally {
+      console.error('AI generation error:', error);
+      console.error('Error details:', {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : 'No stack trace'
+      });
+      toast.error(`AI service error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setAiLoading(false);
-      setShowAIForm(false);
     }
   };
+
+  // Start polling for AI annotation status
+  const startPollingForStatus = (videoId: string) => {
+    const interval = setInterval(async () => {
+      try {
+        const statusResult = await aiService.getAIStatus(videoId);
+        
+        console.log('Status poll result:', statusResult);
+        
+        if (statusResult.success && statusResult.data) {
+          const status = statusResult.data;
+          console.log('Status data:', status);
+          console.log('Status status:', status.status);
+          console.log('Status annotations:', status.annotations);
+          
+          setAiProgress({
+            status: status.status,
+            message: status.message,
+            progress: status.progress,
+            step: status.step
+          });
+
+          // Check if completed
+          if (status.status === 'completed' && status.annotations) {
+            console.log('AI analysis completed, stopping polling');
+            clearInterval(interval);
+            setPollingInterval(null);
+            setAiLoading(false);
+            setAiAnnotations(status.annotations);
+            setShowAIForm(false);
+            toast.success(`AI generated ${status.annotations.length} annotations!`);
+          } else if (status.status === 'error') {
+            console.log('AI analysis failed, stopping polling');
+            clearInterval(interval);
+            setPollingInterval(null);
+            setAiLoading(false);
+            toast.error(`AI analysis failed: ${status.error || 'Unknown error'}`);
+          } else {
+            console.log('Status still processing:', status.status);
+          }
+        } else {
+          console.log('Status result invalid:', statusResult);
+        }
+      } catch (error) {
+        console.error('Status polling error:', error);
+        // Continue polling on error
+      }
+    }, 5000); // Poll every 10 seconds
+
+    setPollingInterval(interval);
+  };
+
+  // Cleanup polling on component unmount
+  useEffect(() => {
+    return () => {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
+    };
+  }, [pollingInterval]);
 
   const handleSaveAIAnnotations = async () => {
     try {
@@ -393,17 +515,19 @@ const VideoPlayer: React.FC = () => {
     <div className="p-8 space-y-8 bg-imdb-black min-h-screen ">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <Link to="/videos">
-          <button className="p-3 text-white/70 hover:text-white hover:bg-imdb-black-lighter/50 rounded-xl transition-all duration-200">
-            <ArrowLeftIcon className="w-5 h-5" />
-          </button>
-        </Link>
+        <button 
+          onClick={handleBackNavigation}
+          className="p-3 text-white/70 hover:text-white hover:bg-imdb-black-lighter/50 rounded-xl transition-all duration-200 group"
+          title="Go back"
+        >
+          <ArrowLeftIcon className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
+        </button>
         <h1 className="text-3xl font-bold text-white">{video.title}</h1>
-        <div className="w-10 h-10"></div> {/* Placeholder for back button */}
+        <div className="w-10 h-10"></div> {/* Placeholder for balance */}
       </div>
 
       {/* Video Player Section */}
-      <div className="card-gradient max-w-3xl mx-auto p-6 space-y-6">
+      <div className="card-gradient max-w-3xl mx-auto p-4 md:p-6 space-y-4 md:space-y-6">
         {/* Video Container */}
         <div className="relative bg-imdb-black rounded-2xl overflow-hidden mb-4 shadow-2xl">
           <video
@@ -427,11 +551,11 @@ const VideoPlayer: React.FC = () => {
           {/* Play/Pause Overlay */}
           <button
             onClick={togglePlay}
-            className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/40 transition-all duration-200"
+            className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/40 transition-all duration-200 touch-manipulation"
           >
             {!isPlaying && (
-              <div className="w-20 h-20 bg-imdb-gold/90 rounded-full flex items-center justify-center shadow-2xl shadow-glow">
-                <PlayIcon className="w-10 h-10 text-imdb-black" />
+              <div className="w-16 h-16 md:w-20 md:h-20 bg-imdb-gold/90 rounded-full flex items-center justify-center shadow-2xl shadow-glow">
+                <PlayIcon className="w-8 h-8 md:w-10 md:h-10 text-imdb-black" />
               </div>
             )}
           </button>
@@ -462,35 +586,35 @@ const VideoPlayer: React.FC = () => {
               onChange={handleSeek}
               className="video-progress"
             />
-            <div className="flex justify-between text-sm text-white/60 mt-2">
+            <div className="flex justify-between text-xs md:text-sm text-white/60 mt-2">
               <span>{formatTime(currentTime)}</span>
               <span>{formatTime(duration)}</span>
             </div>
           </div>
 
           {/* Control Buttons */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+          <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
+            <div className="flex items-center space-x-2 md:space-x-4">
               <button
                 onClick={togglePlay}
-                className="p-4 bg-imdb-gold text-imdb-black rounded-2xl hover:bg-imdb-gold-light transition-all duration-200 shadow-lg hover:shadow-glow"
+                className="p-3 md:p-4 bg-imdb-gold text-imdb-black rounded-2xl hover:bg-imdb-gold-light transition-all duration-200 shadow-lg hover:shadow-glow"
               >
                 {isPlaying ? (
-                  <PauseIcon className="w-6 h-6" />
+                  <PauseIcon className="w-5 h-5 md:w-6 md:h-6" />
                 ) : (
-                  <PlayIcon className="w-6 h-6" />
+                  <PlayIcon className="w-5 h-5 md:w-6 md:h-6" />
                 )}
               </button>
 
               <div className="flex items-center space-x-2">
                 <button
                   onClick={toggleMute}
-                  className="p-3 text-white/70 hover:text-white hover:bg-imdb-black-lighter/50 rounded-xl transition-all duration-200"
+                  className="p-2 md:p-3 text-white/70 hover:text-white hover:bg-imdb-black-lighter/50 rounded-xl transition-all duration-200"
                 >
                   {isMuted ? (
-                    <SpeakerXMarkIcon className="w-5 h-5" />
+                    <SpeakerXMarkIcon className="w-4 h-4 md:w-5 md:h-5" />
                   ) : (
-                    <SpeakerWaveIcon className="w-5 h-5" />
+                    <SpeakerWaveIcon className="w-4 h-4 md:w-5 md:h-5" />
                   )}
                 </button>
                 <input
@@ -500,23 +624,23 @@ const VideoPlayer: React.FC = () => {
                   step="0.1"
                   value={volume}
                   onChange={handleVolumeChange}
-                  className="w-20 h-2 bg-imdb-black-lighter rounded-lg appearance-none cursor-pointer slider"
+                  className="w-16 md:w-20 h-2 bg-imdb-black-lighter rounded-lg appearance-none cursor-pointer slider"
                 />
               </div>
             </div>
 
-            <button className="p-3 text-white/70 hover:text-white hover:bg-imdb-black-lighter/50 rounded-xl transition-all duration-200">
-              <Cog6ToothIcon className="w-5 h-5" />
+            <button className="p-2 md:p-3 text-white/70 hover:text-white hover:bg-imdb-black-lighter/50 rounded-xl transition-all duration-200">
+              <Cog6ToothIcon className="w-4 h-4 md:w-5 md:h-5" />
             </button>
           </div>
         </div>
       </div>
 
       {/* Annotations Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-h-100 overflow-y-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8 max-h-100 overflow-y-auto">
         {/* Manual Annotations */}
-        <div className="card-gradient ">
-          <h2 className="text-2xl font-bold text-white">Manual Annotations</h2>
+        <div className="card-gradient p-4 md:p-6">
+          <h2 className="text-xl md:text-2xl font-bold text-white mb-4">Manual Annotations</h2>
 
           {annotations.length === 0 ? (
             <div className="text-center pt-4">
@@ -528,9 +652,9 @@ const VideoPlayer: React.FC = () => {
           ) : (
             <div className="space-y-4 pt-4 pb-4 max-h-[600px] overflow-y-auto">
               {annotations.map((annotation) => (
-                <div key={annotation._id} className="annotation-card ">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-2">
+                <div key={annotation._id} className="annotation-card">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 space-y-2 sm:space-y-0">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="text-sm font-semibold text-imdb-gold bg-imdb-gold/10 px-3 py-1 rounded-lg">
                         {annotation.label}
                       </span>
@@ -548,7 +672,7 @@ const VideoPlayer: React.FC = () => {
                           </span>
                         )}
                     </div>
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-2 self-end">
                       <button
                         onClick={() => handleEditAnnotationClick(annotation)}
                         className="p-2 text-imdb-gold hover:bg-imdb-gold/10 rounded-lg transition-colors duration-200"
@@ -564,7 +688,7 @@ const VideoPlayer: React.FC = () => {
                     </div>
                   </div>
                   <p className="text-white mb-3">{annotation.text}</p>
-                  <div className="flex items-center justify-between text-sm text-white/60">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between text-sm text-white/60 space-y-1 sm:space-y-0">
                     <span>
                       {formatTime(annotation.startTime)} -{" "}
                       {formatTime(annotation.endTime)}
@@ -589,11 +713,11 @@ const VideoPlayer: React.FC = () => {
         </div>
 
         {/* AI Annotations */}
-        <div className="card-gradient">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-white">AI Annotations</h2>
+        <div className="card-gradient p-4 md:p-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 space-y-2 md:space-y-0">
+            <h2 className="text-xl md:text-2xl font-bold text-white">AI Annotations</h2>
             {aiAnnotations.length > 0 && (
-              <div className="flex space-x-2">
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                 <button
                   onClick={handleAcceptAllAIAnnotations}
                   className="px-3 py-1 bg-success/20 text-success text-sm font-semibold rounded-lg hover:bg-success/30 transition-colors duration-200"
@@ -610,6 +734,7 @@ const VideoPlayer: React.FC = () => {
             )}
           </div>
 
+        
           {aiAnnotations.length > 0 ? (
             <div className="space-y-4 py-4">
               {aiAnnotations.map((annotation, index) => (
@@ -764,11 +889,11 @@ const VideoPlayer: React.FC = () => {
       {/* Annotation Form Modal */}
       {showAnnotationForm && (
         <div
-          className="modal-overlay fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50"
+          className="modal-overlay fixed inset-0 bg-black/60 flex items-center justify-center p-2 md:p-4 z-50"
           onClick={() => setShowAnnotationForm(false)}
         >
           <div
-            className="modal-content bg-imdb-black-light rounded-2xl shadow-lg border border-imdb-black-lighter max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6"
+            className="modal-content bg-imdb-black-light rounded-2xl shadow-lg border border-imdb-black-lighter max-w-2xl w-full max-h-[90vh] overflow-y-auto p-4 md:p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="text-center mb-8">
@@ -785,7 +910,7 @@ const VideoPlayer: React.FC = () => {
             </div>
 
             <form onSubmit={handleAnnotationSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-white mb-3">
                     Annotation Label
@@ -812,11 +937,11 @@ const VideoPlayer: React.FC = () => {
                   <label className="block text-sm font-semibold text-white mb-3">
                     Current Video Time
                   </label>
-                  <div className="bg-imdb-black-lighter rounded-xl p-4 text-center">
-                    <div className="text-2xl font-bold text-imdb-gold">
+                  <div className="bg-imdb-black-lighter rounded-xl p-3 md:p-4 text-center">
+                    <div className="text-xl md:text-2xl font-bold text-imdb-gold">
                       {formatTime(currentTime)}
                     </div>
-                    <div className="text-sm text-white/60">
+                    <div className="text-xs md:text-sm text-white/60">
                       Click to set current time
                     </div>
                   </div>
@@ -932,17 +1057,17 @@ const VideoPlayer: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex space-x-4 pt-6">
+              <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 pt-6">
                 <button
                   type="button"
                   onClick={() => setShowAnnotationForm(false)}
-                  className="flex-1 btn-outline py-4 text-lg"
+                  className="flex-1 btn-outline py-3 md:py-4 text-base md:text-lg"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 btn-primary py-4 text-lg"
+                  className="flex-1 btn-primary py-3 md:py-4 text-base md:text-lg"
                 >
                   <div className="flex items-center justify-center">
                     <PlusIcon className="w-5 h-5 mr-2" />
@@ -993,7 +1118,69 @@ const VideoPlayer: React.FC = () => {
                   to focus on
                 </p>
               </div>
-
+    {aiProgress && (
+            <div className="mb-6 p-4 bg-gradient-to-r from-imdb-gold/10 to-imdb-gold-light/10 rounded-xl border border-imdb-gold/20">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-imdb-gold rounded-full flex items-center justify-center">
+                    <SparklesIcon className="w-5 h-5 text-imdb-black" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-imdb-gold">
+                      {aiProgress.status === 'processing' ? 'AI Analysis in Progress' : 
+                       aiProgress.status === 'completed' ? 'AI Analysis Complete' : 
+                       aiProgress.status === 'error' ? 'AI Analysis Failed' : 'AI Analysis'}
+                    </h3>
+                    <p className="text-sm text-white/70">{aiProgress.message}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-lg font-bold text-imdb-gold">
+                    {typeof aiProgress.progress === 'string' ? aiProgress.progress : `${aiProgress.progress}%`}
+                  </div>
+                  <div className="text-xs text-white/60 capitalize">{aiProgress.step}</div>
+                </div>
+              </div>
+              
+              {/* Progress Bar */}
+              <div className="w-full bg-imdb-black-lighter rounded-full h-2 mb-3">
+                <div
+                  className="bg-imdb-gold h-2 rounded-full transition-all duration-500 ease-out"
+                  style={{
+                    width: typeof aiProgress.progress === 'string' 
+                      ? aiProgress.progress 
+                      : `${aiProgress.progress}%`
+                  }}
+                ></div>
+              </div>
+              
+              {/* Status Details and Controls */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4 text-xs text-white/60">
+                  <span>Step: {aiProgress.step.replace(/_/g, ' ')}</span>
+                  <span>Status: {aiProgress.status}</span>
+                </div>
+                
+                {/* Stop Button for Processing State */}
+                {aiProgress.status === 'processing' && (
+                  <button
+                    onClick={() => {
+                      if (pollingInterval) {
+                        clearInterval(pollingInterval);
+                        setPollingInterval(null);
+                      }
+                      setAiLoading(false);
+                      setAiProgress(null);
+                      toast.success('AI analysis stopped by user');
+                    }}
+                    className="px-3 py-1 bg-error/20 text-error text-sm font-semibold rounded-lg hover:bg-error/30 transition-colors duration-200"
+                  >
+                    Stop Analysis
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
               <div className="bg-gradient-to-r from-imdb-gold/10 to-imdb-gold-light/10 rounded-xl p-4 border border-imdb-gold/20">
                 <div className="flex items-start space-x-3">
                   <div className="w-6 h-6 bg-imdb-gold rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -1018,18 +1205,19 @@ const VideoPlayer: React.FC = () => {
                   type="button"
                   onClick={() => setShowAIForm(false)}
                   className="flex-1 btn-outline"
+                  disabled={aiLoading}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleAIGenerate}
                   disabled={aiLoading}
-                  className="flex-1 btn-primary"
+                  className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {aiLoading ? (
                     <div className="flex items-center justify-center">
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-imdb-black mr-2"></div>
-                      Generating...
+                      {aiProgress ? 'Processing...' : 'Starting...'}
                     </div>
                   ) : (
                     <div className="flex items-center justify-center">

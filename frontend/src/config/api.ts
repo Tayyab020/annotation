@@ -32,6 +32,7 @@ export const API_ENDPOINTS = {
     ANNOTATE: '/ai/annotate',
     SAVE_ANNOTATIONS: '/ai/save-annotations',
     SUGGEST: '/ai/suggest',
+    STATUS: '/ai/status',
   },
   
   // Users (Admin)
@@ -68,7 +69,7 @@ export const UPLOAD_CONFIG = {
 
 // Request timeout configuration
 export const REQUEST_CONFIG = {
-  DEFAULT_TIMEOUT: 10000, // 10 seconds
+  DEFAULT_TIMEOUT: 5000, // 5 seconds
   UPLOAD_TIMEOUT: 300000, // 5 minutes
   AI_TIMEOUT: 30000, // 30 seconds
 } as const;

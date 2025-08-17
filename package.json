@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build"
+  },
   "devDependencies": {
     "@babel/plugin-transform-react-jsx": "^7.27.1",
     "@babel/preset-react": "^7.27.1"

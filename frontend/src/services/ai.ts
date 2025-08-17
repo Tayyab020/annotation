@@ -5,22 +5,37 @@ import type {
   AIAnnotationResponse, 
   AISuggestionRequest, 
   Annotation, 
-  CreateAnnotation 
+  CreateAnnotation,
+  AIStatusResponse,
+  ApiResponse
 } from '../types';
 
 class AIService {
   // Generate AI annotations
-  async generateAnnotations(request: AIAnnotationRequest): Promise<AIAnnotationResponse> {
+  async generateAnnotations(request: AIAnnotationRequest): Promise<ApiResponse<AIAnnotationResponse>> {
     const response = await apiService.aiRequest<AIAnnotationResponse>(
       API_ENDPOINTS.AI.ANNOTATE,
       request
     );
 
     if (response.success && response.data) {
-      return response.data;
+      return response; // Return the full response, not just response.data
     }
 
     throw new Error(response.message || 'Failed to generate AI annotations');
+  }
+
+  // Get AI annotation status
+  async getAIStatus(videoId: string): Promise<ApiResponse<AIStatusResponse>> {
+    const response = await apiService.get(
+      `${API_ENDPOINTS.AI.STATUS}/${videoId}`
+    );
+
+    if (response.success && response.data) {
+      return response; // Return the full response, not just response.data
+    }
+
+    throw new Error(response.message || 'Failed to get AI status');
   }
 
   // Save AI-generated annotations to database
@@ -165,20 +180,20 @@ class AIService {
   }
 
   // Process AI response and format annotations
-  processAIResponse(aiResponse: AIAnnotationResponse, videoId: string): CreateAnnotation[] {
-    if (!aiResponse.annotations || !Array.isArray(aiResponse.annotations)) {
+  processAIResponse(aiResponse: AIStatusResponse, videoId: string): CreateAnnotation[] {
+    if (!aiResponse.data?.annotations || !Array.isArray(aiResponse.data.annotations)) {
       return [];
     }
 
-    return aiResponse.annotations
-      .filter(annotation => 
+    return aiResponse.data.annotations
+      .filter((annotation: Partial<Annotation>) => 
         annotation.startTime !== undefined &&
         annotation.endTime !== undefined &&
         annotation.label &&
         annotation.startTime >= 0 &&
         annotation.endTime > annotation.startTime
       )
-      .map(annotation => ({
+      .map((annotation: Partial<Annotation>) => ({
         videoId,
         startTime: annotation.startTime!,
         endTime: annotation.endTime!,

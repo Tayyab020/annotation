@@ -5,10 +5,11 @@ const fs = require('fs');
 // Upload video with Cloudinary support
 const uploadVideo = async (req, res) => {
   try {
+    console.log("Uploading video:", req.file);
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No video file provided' });
     }
-
+console.log("Uploading video:", req.body);
     const { title, description } = req.body;
     const userId = req.user.id;
 
@@ -145,6 +146,7 @@ const getVideo = async (req, res) => {
 // Update video
 const updateVideo = async (req, res) => {
   try {
+   
     const { title, description } = req.body;
     const video = await Video.findById(req.params.id);
     

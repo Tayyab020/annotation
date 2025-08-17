@@ -82,11 +82,30 @@ export interface AIAnnotationRequest {
 }
 
 export interface AIAnnotationResponse {
-  annotations: Partial<Annotation>[];
-  videoId: string;
-  generatedAt: string;
+  statusId: string;
+  status: string;
+  message: string;
+  progress: string | number;
+  step: string;
+  startedAt: string;
   model: string;
-  warning?: string;
+  provider: string;
+}
+
+export interface AIStatusResponse {
+  status: string;
+  message: string;
+  progress: string | number;
+  step: string;
+  startedAt: string;
+  completedAt?: string;
+  errorAt?: string;
+  error?: string;
+  annotations?: Partial<Annotation>[];
+  videoId: string;
+  model: string;
+  provider: string;
+  elapsedSeconds?: number;
 }
 
 export interface AISuggestionRequest {

@@ -40,3 +40,115 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Enhanced menu animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0%);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.5s ease-out;
+}
+
+.animate-slideOutRight {
+  animation: slideOutRight 0.5s ease-in;
+}
+
+/* Smooth menu transitions */
+.menu-overlay {
+  transition: opacity 0.3s ease-out;
+}
+
+.menu-panel {
+  transition: transform 0.3s ease-out;
+}
+
+/* Enhanced hover effects for menu items */
+.menu-item {
+  transition: all 0.3s ease;
+}
+
+.menu-item:hover {
+  transform: translateX(8px) scale(1.02);
+}
+
+/* Menu button rotation animation */
+.menu-button-icon {
+  transition: transform 0.3s ease;
+}
+
+.menu-button-icon.rotated {
+  transform: rotate(90deg);
+}
+
+/* Menu item hover effects */
+.menu-item-hover {
+  transition: all 0.3s ease;
+}
+
+.menu-item-hover:hover {
+  transform: translateX(8px);
+}
+
+/* Mobile-specific styles */
+@media (max-width: 768px) {
+  #root {
+    padding: 1rem;
+  }
+  
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .video-progress,
+  .slider {
+    height: 8px;
+  }
+  
+  .video-progress::-webkit-slider-thumb,
+  .slider::-webkit-slider-thumb {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .modal-overlay {
+    padding: 1rem;
+  }
+  
+  .modal-content {
+    padding: 1.5rem;
+    max-height: 85vh;
+  }
+  
+  .annotation-card {
+    padding: 1rem;
+  }
+}

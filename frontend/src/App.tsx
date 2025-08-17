@@ -1,9 +1,11 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Header from './components/common/Header';
+import Footer from './components/common/Footer';
+import Home from './components/pages/Home';
 import LoginForm from './components/auth/LoginForm';
 import RegisterForm from './components/auth/RegisterForm';
 import Dashboard from './components/dashboard/Dashboard';
@@ -34,15 +36,13 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 // Main Layout Component
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const location = useLocation();
-  const isHomePage = location.pathname === '/';
-  
   return (
-    <div className="min-h-screen bg-imdb-black">
+    <div className="min-h-screen bg-imdb-black flex flex-col">
       <Header />
-      <main className={isHomePage ? 'pt-96' : 'pt-32'}>
+      <main className="flex-1 pt-32">
         {children}
       </main>
+      <Footer />
     </div>
   );
 };
@@ -50,9 +50,11 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 // Public Layout Component
 const PublicLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-dark-900 to-dark-950 flex items-center justify-center">
-      <div className="w-full max-w-md mx-4">
-        {children}
+    <div className="min-h-screen bg-gradient-to-br from-dark-900 to-dark-950 flex flex-col">
+      <div className="flex-1 flex items-center justify-center">
+        <div className="w-full max-w-md mx-4">
+          {children}
+        </div>
       </div>
     </div>
   );
@@ -95,29 +97,24 @@ const App: React.FC = () => {
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={
+                <div className="min-h-screen bg-imdb-black flex flex-col">
+                  <Header />
+                  <main className="flex-1">
+                    <Home />
+                  </main>
+                  <Footer />
+                </div>
+              } />
+              <Route path="/login" element={
                 <PublicLayout>
-                  <div className="min-h-screen bg-imdb-black flex items-center justify-center">
-                    <div className="text-center">
-                      <h1 className="text-6xl font-bold text-white mb-6">
-                        Welcome to <span className="text-gradient">VidAnnotate</span>
-                      </h1>
-                      <p className="text-xl text-white/70 mb-8 max-w-2xl">
-                        The ultimate AI-powered video annotation platform
-                      </p>
-                      <div className="flex items-center justify-center space-x-4">
-                        <Link to="/dashboard" className="btn-primary text-lg px-8 py-4">
-                          Get Started
-                        </Link>
-                        <Link to="/login" className="btn-outline text-lg px-8 py-4">
-                          Sign In
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
+                  <LoginForm />
                 </PublicLayout>
               } />
-              <Route path="/login" element={<LoginForm />} />
-              <Route path="/register" element={<RegisterForm />} />
+              <Route path="/register" element={
+                <PublicLayout>
+                  <RegisterForm />
+                </PublicLayout>
+              } />
               
               {/* Protected Routes */}
               <Route path="/dashboard" element={

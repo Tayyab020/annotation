@@ -319,14 +319,14 @@ const History: React.FC = () => {
                   </div>
                   
                   <div className="flex space-x-2 ml-4">
-                    {/* Play Video Button */}
-                    <button
-                      onClick={() => navigate(`/videos/${typeof annotation.video === 'string' ? annotation.video : annotation.video._id}`)}
-                      className="p-2 text-imdb-gold hover:bg-imdb-gold/10 rounded-lg transition-colors duration-200"
-                      title="Play Video"
-                    >
-                      <PlayIcon className="w-4 h-4" />
-                    </button>
+                                         {/* Play Video Button */}
+                     <button
+                       onClick={() => navigate(`/videos/${typeof annotation.video === 'string' ? annotation.video : annotation.video._id}`, { state: { from: '/annotations' } })}
+                       className="p-2 text-imdb-gold hover:bg-imdb-gold/10 rounded-lg transition-colors duration-200"
+                       title="Play Video"
+                     >
+                       <PlayIcon className="w-4 h-4" />
+                     </button>
                     
                     {/* Edit Button */}
                     <button
