@@ -3,7 +3,7 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/server.js"
+      "dest": "/api/server"
     }
   ],
   "env": {
@@ -11,7 +11,7 @@
     "VERCEL": "true"
   },
   "functions": {
-    "server.js": {
+    "api/server": {
       "maxDuration": 30
     }
   }
