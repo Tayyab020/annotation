@@ -81,24 +81,27 @@ app.use(errorHandler);
 
 const PORT = config.PORT;
 
-const server = app.listen(PORT, () => {
-  console.log(`🚀 Server running in ${config.NODE_ENV} mode on port ${PORT}`);
-});
+// Only start the server if not in serverless environment
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  const server = app.listen(PORT, () => {
+    console.log(`🚀 Server running in ${config.NODE_ENV} mode on port ${PORT}`);
+  });
 
-// Handle unhandled promise rejections
-process.on("unhandledRejection", (err, promise) => {
-  console.log(`Error: ${err.message}`);
-  // Close server & exit process
-  server.close(() => {
+  // Handle unhandled promise rejections
+  process.on("unhandledRejection", (err, promise) => {
+    console.log(`Error: ${err.message}`);
+    // Close server & exit process
+    server.close(() => {
+      process.exit(1);
+    });
+  });
+
+  // Handle uncaught exceptions
+  process.on("uncaughtException", (err) => {
+    console.log(`Error: ${err.message}`);
+    console.log("Shutting down server due to uncaught exception");
     process.exit(1);
   });
-});
-
-// Handle uncaught exceptions
-process.on("uncaughtException", (err) => {
-  console.log(`Error: ${err.message}`);
-  console.log("Shutting down server due to uncaught exception");
-  process.exit(1);
-});
+}
 
 module.exports = app;
