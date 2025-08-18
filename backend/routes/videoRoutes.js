@@ -1,7 +1,6 @@
 const express = require('express');
 const { videoController } = require('../controllers');
-const { protect } = require('../middleware');
-const { upload, handleMulterError } = require('../middleware/upload');
+const { protect, createUpload, handleMulterError } = require('../middleware');
 
 const router = express.Router();
 
@@ -9,7 +8,7 @@ const router = express.Router();
 router.use(protect);
 
 // Video upload route
-router.post('/upload', upload.single('video'), handleMulterError, videoController.uploadVideo);
+router.post('/upload', createUpload().single('video'), handleMulterError, videoController.uploadVideo);
 
 // CRUD routes for videos
 router
