@@ -1,0 +1,13 @@
+# Exclude unnecessary files from Vercel deployment
+node_modules/
+uploads/
+temp_uploads/
+*.log
+.env.local
+.env.development
+test-*.js
+test-*.json
+.git/
+README.md
+API_DOCUMENTATION.md
+Nova_API_Postman_Collection.json

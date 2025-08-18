@@ -63,8 +63,10 @@ app.use("/api/videos", videoRoutes);
 app.use("/api/annotations", annotationRoutes);
 app.use("/api/ai", aiRoutes);
 
-// Serve uploaded files statically
-app.use("/uploads", express.static("uploads"));
+// Serve uploaded files statically (only in development)
+if (process.env.NODE_ENV !== "production") {
+  app.use("/uploads", express.static("uploads"));
+}
 
 // Handle 404 routes
 app.all("*", (req, res) => {
